@@ -1,0 +1,105 @@
+import React, { useEffect, useState } from 'react';
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+import Header from './components/Layout/Header';
+import Sidebar from './components/Layout/Sidebar';
+import FormContainer from './components/Forms/FormContainer';
+import PreviewContainer from './components/Preview/PreviewContainer';
+import TemplateGallery from './components/Modals/TemplateGallery';
+import ResumeManager from './components/Modals/ResumeManager';
+import CoverLetterBuilder from './components/Modals/CoverLetterBuilder';
+import { useAutoSave } from './hooks';
+import { loadResumeData, setResumeList, setActiveResumeId, updateSettings, DEFAULT_RESUME_ID, initialResumeData } from './store/resumeSlice';
+import { migrateFromLocalStorage, listResumes, saveResume, loadSettings } from './db/resumeDB';
+import { useAppSelector } from './hooks';
+
+const AppContent: React.FC = () => {
+  useAutoSave();
+  const darkMode = useAppSelector(state => state.resume.settings.darkMode);
+  const showTemplateGallery = useAppSelector(state => state.resume.showTemplateGallery);
+  const showCoverLetterBuilder = useAppSelector(state => state.resume.showCoverLetterBuilder);
+  const [showResumeManager, setShowResumeManager] = useState(false);
+
+  useEffect(() => {
+    const init = async () => {
+      // Migrate from localStorage if needed
+      await migrateFromLocalStorage(DEFAULT_RESUME_ID);
+
+      // Load settings
+      const savedSettings = await loadSettings();
+      if (savedSettings) {
+        store.dispatch(updateSettings(savedSettings));
+      }
+
+      // Load resume list
+      const resumes = await listResumes();
+      if (resumes.length > 0) {
+        const list = resumes.map(r => ({
+          id: r.id,
+          name: r.name,
+          updatedAt: r.updatedAt,
+          targetJob: r.targetJob,
+        }));
+        store.dispatch(setResumeList(list));
+
+        // Load the most recently updated resume
+        const latest = resumes.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+        store.dispatch(setActiveResumeId(latest.id));
+        store.dispatch(loadResumeData(latest.data));
+      } else {
+        // First time — save the default resume
+        await saveResume({
+          id: DEFAULT_RESUME_ID,
+          name: 'My Resume',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          data: store.getState().resume.data,
+          versions: [],
+        });
+      }
+    };
+    init();
+  }, []);
+
+  // Apply dark mode to root
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
+
+  return (
+    <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-200 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <Header onOpenResumeManager={() => setShowResumeManager(true)} />
+
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        <Sidebar />
+
+        <div className="flex-1 flex min-w-0 overflow-hidden">
+          {/* Center Panel - Forms */}
+          <div className={`w-2/5 border-r flex flex-col min-h-0 overflow-hidden ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+            <FormContainer />
+          </div>
+
+          {/* Right Panel - Preview */}
+          <div className={`w-3/5 overflow-hidden flex flex-col ${darkMode ? 'bg-gray-900' : ''}`}>
+            <PreviewContainer />
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {showTemplateGallery && <TemplateGallery />}
+      {showCoverLetterBuilder && <CoverLetterBuilder />}
+      {showResumeManager && <ResumeManager onClose={() => setShowResumeManager(false)} />}
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
+  );
+}
+
+export default App;
