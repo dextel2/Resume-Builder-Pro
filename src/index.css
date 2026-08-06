@@ -2,43 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Print: resume only (Ctrl/Cmd+P) — related to #21 */
 @media print {
   @page {
+    margin: 0.5in;
     size: A4;
-    margin: 12mm;
   }
 
   html,
   body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
     background: #fff !important;
     height: auto !important;
     overflow: visible !important;
   }
 
+  /* Hide app chrome when printing (Ctrl/Cmd+P) */
   .app-chrome,
   aside,
-  [class*='Sidebar'],
-  button,
   .fixed {
     display: none !important;
   }
 
-  /* Keep the live preview visible */
   #resume-preview {
     display: block !important;
     box-shadow: none !important;
     margin: 0 auto !important;
     width: 100% !important;
     min-height: auto !important;
-    padding: 0 !important;
   }
 
-  /* Avoid awkward breaks inside common blocks when possible */
   #resume-preview li,
   #resume-preview h1,
   #resume-preview h2 {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\:max-w-none {
+    max-width: none !important;
+  }
+
+  .print\:p-4 {
+    padding: 1rem !important;
+  }
+
+  .print\:m-0 {
+    margin: 0 !important;
+  }
+
+  .print\:mb-4 {
+    margin-bottom: 1rem !important;
+  }
+
+  .print\:mb-1 {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .print\:text-3xl {
+    font-size: 1.875rem !important;
+    line-height: 2.25rem !important;
+  }
+
+  .print\:gap-2 {
+    gap: 0.5rem !important;
+  }
+
+  .print\:text-xs {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
+
+  .print\:h-3 {
+    height: 0.75rem !important;
+  }
+
+  .print\:w-3 {
+    width: 0.75rem !important;
+  }
+
+  .print\:inline {
+    display: inline !important;
+  }
+
+  .print\:align-baseline {
+    vertical-align: baseline !important;
+  }
+
+  .print\:items-baseline {
+    align-items: baseline !important;
+  }
+
+  .print\:mt-1 {
+    margin-top: 0.25rem !important;
   }
 }
