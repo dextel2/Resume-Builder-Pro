@@ -16,153 +16,12 @@ import {
   JDMatchResult,
 } from '../types/resume';
 import { v4 as uuidv4 } from 'uuid';
+import { blankResumeData } from '../data/sampleResume';
 
 export const DEFAULT_RESUME_ID = 'default-resume';
 
-export const initialResumeData: ResumeData = {
-  personalInfo: {
-    name: 'Ashish Pratap Singh',
-    email: 'ashish.singh@email.com',
-    phone: '+1 (555) 123-4567',
-    location: 'San Francisco, CA',
-    github: 'github.com/ashishps1',
-    linkedin: 'linkedin.com/in/ashishps1',
-    website: '',
-    summary: 'Senior Software Engineer with 7+ years of experience building scalable distributed systems and data platforms at Adobe, Amazon, and Morgan Stanley. Proven track record of reducing operational costs by $50K+ annually and improving system reliability through automation and cloud-native solutions.',
-  },
-  sections: {
-    education: [
-      {
-        id: uuidv4(),
-        institution: 'BITS Pilani Hyderabad Campus',
-        degree: 'Bachelor of Engineering',
-        field: 'Computer Science and Engineering',
-        startDate: '2013-08',
-        endDate: '2017-06',
-        gpa: '7.96/10',
-        coursework: 'Data Structures & Algorithms, Operating Systems, Computer Networks, Machine Learning, Database Systems, Distributed Computing',
-        honors: '',
-      },
-    ],
-    experience: [
-      {
-        id: uuidv4(),
-        company: 'Adobe',
-        position: 'Computer Scientist',
-        location: 'Bangalore, India',
-        startDate: '2021-03',
-        endDate: '',
-        current: true,
-        achievements: [
-          'Led migration of Hive and Presto jobs from Qubole to AWS EMR, improving availability by 40% and reducing operational costs by 35%.',
-          'Reduced custom reports service cost by 80%+ by building automated system to identify and disable unused reports.',
-          'Identified unused AWS resources and established S3 bucket expiration policies, cutting annual AWS expenditure by $50,000+.',
-        ],
-        technologies: 'AWS, EC2, S3, EMR, Hive, Presto, Kafka, Druid, Kubernetes, Docker',
-      },
-      {
-        id: uuidv4(),
-        company: 'Amazon',
-        position: 'Software Development Engineer',
-        location: 'Bangalore, India',
-        startDate: '2019-09',
-        endDate: '2021-03',
-        current: false,
-        achievements: [
-          'Migrated ML workflows to native AWS, enabling auto-scaling and improving logging/troubleshooting capabilities.',
-          'Built customized batch workflow plugin saving external team $6MM in human labelling cost via ML-based auto-labelling.',
-        ],
-        technologies: 'Java, Python, TypeScript, AWS Step Functions, AWS Batch, Lambda, DynamoDB, LightGBM, TensorFlow',
-      },
-      {
-        id: uuidv4(),
-        company: 'Morgan Stanley',
-        position: 'Technology Associate',
-        location: 'Bangalore, India',
-        startDate: '2017-08',
-        endDate: '2019-08',
-        current: false,
-        achievements: [
-          'Built infrastructure alert visualization tool using graph algorithms (BFS, Union-Find) to reduce Mean Time to Resolution by 60%.',
-          'Developed ML-powered solution predicting production deployment failures with 85% accuracy, preventing emergency reversions.',
-        ],
-        technologies: 'Python, Flask, ReactJS, Redux, Angular, d3, Kafka, DB2, scikit-learn',
-      },
-    ],
-    skills: [
-      {
-        id: uuidv4(),
-        category: 'Languages',
-        skills: 'C/C++, Java, Python, JavaScript, TypeScript, SQL',
-      },
-      {
-        id: uuidv4(),
-        category: 'Cloud & Infrastructure',
-        skills: 'AWS (EC2, S3, Lambda, DynamoDB, EMR, Athena), Kubernetes, Docker',
-      },
-      {
-        id: uuidv4(),
-        category: 'Data & ML',
-        skills: 'Spark, Hive, Presto, Kafka, Elasticsearch, TensorFlow, LightGBM, scikit-learn',
-      },
-    ],
-    projects: [
-      {
-        id: uuidv4(),
-        title: 'Word Lookup Dictionary',
-        year: '2015',
-        description: 'Desktop application for English word lookup with efficient Trie-based search, spelling correction via edit distance algorithm, and automated web-scraping for data collection.',
-        technologies: 'Python, BeautifulSoup',
-        url: '',
-      },
-      {
-        id: uuidv4(),
-        title: 'Alternative Routes in Road Networks',
-        year: '2016',
-        description: "Applied Dijkstra's shortest path algorithm with real-time traffic simulation, implementing collision avoidance via dynamic speed adjustment using C++ and OpenGL.",
-        technologies: 'C++, OpenGL',
-        url: '',
-      },
-    ],
-    awards: [
-      {
-        id: uuidv4(),
-        title: 'Mentor at Scaler Academy',
-        issuer: 'Scaler Academy',
-        date: '2021',
-        description: 'Mentoring 50+ students and working professionals on problem solving, coding, and system design.',
-      },
-      {
-        id: uuidv4(),
-        title: 'Data Engineering Nanodegree',
-        issuer: 'Udacity',
-        date: '2020',
-        description: 'Completed comprehensive program covering ETL pipelines, data warehousing, and big data technologies.',
-      },
-    ],
-    certifications: [],
-    custom: [],
-  },
-  sectionOrder: [
-    { id: 'skills', type: 'skills', name: 'Skills', visible: true },
-    { id: 'experience', type: 'experience', name: 'Work Experience', visible: true },
-    { id: 'education', type: 'education', name: 'Education', visible: true },
-    { id: 'projects', type: 'projects', name: 'Projects', visible: true },
-    { id: 'awards', type: 'awards', name: 'Awards & Recognition', visible: true },
-    { id: 'certifications', type: 'certifications', name: 'Certifications', visible: false },
-  ],
-  styling: {
-    template: 'professional',
-    fontSize: 11,
-    fontFamily: 'Arial',
-    spacing: 1.2,
-    colors: {
-      primary: '#1C033C',
-      secondary: '#371e77',
-      accent: '#6d28d9',
-    },
-  },
-};
+/** Default editor state is blank; sample lives in `src/data/sampleResume.ts`. */
+export const initialResumeData: ResumeData = blankResumeData;
 
 const defaultSettings: AppSettings = {
   ai: {
@@ -192,7 +51,6 @@ const resumeSlice = createSlice({
   name: 'resume',
   initialState,
   reducers: {
-    // ── Multi-resume management ──────────────────────────────────────────────
     setResumeList: (state, action: PayloadAction<typeof initialState.resumeList>) => {
       state.resumeList = action.payload;
     },
@@ -219,12 +77,10 @@ const resumeSlice = createSlice({
       }
     },
 
-    // ── Personal Info ────────────────────────────────────────────────────────
     updatePersonalInfo: (state, action: PayloadAction<Partial<PersonalInfo>>) => {
       state.data.personalInfo = { ...state.data.personalInfo, ...action.payload };
     },
 
-    // ── Education ────────────────────────────────────────────────────────────
     addEducation: (state) => {
       state.data.sections.education.push({
         id: uuidv4(),
@@ -246,7 +102,6 @@ const resumeSlice = createSlice({
       state.data.sections.education = state.data.sections.education.filter(e => e.id !== action.payload);
     },
 
-    // ── Experience ───────────────────────────────────────────────────────────
     addExperience: (state) => {
       state.data.sections.experience.push({
         id: uuidv4(),
@@ -268,7 +123,6 @@ const resumeSlice = createSlice({
       state.data.sections.experience = state.data.sections.experience.filter(e => e.id !== action.payload);
     },
 
-    // ── Projects ─────────────────────────────────────────────────────────────
     addProject: (state) => {
       state.data.sections.projects.push({
         id: uuidv4(),
@@ -287,7 +141,6 @@ const resumeSlice = createSlice({
       state.data.sections.projects = state.data.sections.projects.filter(p => p.id !== action.payload);
     },
 
-    // ── Skills ───────────────────────────────────────────────────────────────
     addSkill: (state) => {
       state.data.sections.skills.push({ id: uuidv4(), category: '', skills: '' });
     },
@@ -299,7 +152,6 @@ const resumeSlice = createSlice({
       state.data.sections.skills = state.data.sections.skills.filter(s => s.id !== action.payload);
     },
 
-    // ── Awards ───────────────────────────────────────────────────────────────
     addAward: (state) => {
       state.data.sections.awards.push({ id: uuidv4(), title: '', issuer: '', date: '', description: '' });
     },
@@ -311,7 +163,6 @@ const resumeSlice = createSlice({
       state.data.sections.awards = state.data.sections.awards.filter(a => a.id !== action.payload);
     },
 
-    // ── Certifications ────────────────────────────────────────────────────────
     addCertification: (state) => {
       state.data.sections.certifications.push({
         id: uuidv4(),
@@ -330,7 +181,6 @@ const resumeSlice = createSlice({
       state.data.sections.certifications = state.data.sections.certifications.filter(c => c.id !== action.payload);
     },
 
-    // ── Custom Sections ───────────────────────────────────────────────────────
     addCustomSection: (state, action: PayloadAction<string>) => {
       const id = uuidv4();
       const newSection: CustomSection = { id, name: action.payload, entries: [] };
@@ -365,7 +215,6 @@ const resumeSlice = createSlice({
       }
     },
 
-    // ── Section Order ─────────────────────────────────────────────────────────
     updateSectionOrder: (state, action: PayloadAction<SectionOrder[]>) => {
       state.data.sectionOrder = action.payload;
     },
@@ -374,7 +223,6 @@ const resumeSlice = createSlice({
       if (idx !== -1) state.data.sectionOrder[idx].visible = !state.data.sectionOrder[idx].visible;
     },
 
-    // ── UI State ─────────────────────────────────────────────────────────────
     setActiveSection: (state, action: PayloadAction<string>) => {
       state.activeSection = action.payload;
     },
@@ -385,19 +233,17 @@ const resumeSlice = createSlice({
       state.showCoverLetterBuilder = action.payload;
     },
 
-    // ── Styling ───────────────────────────────────────────────────────────────
     updateStyling: (state, action: PayloadAction<Partial<ResumeData['styling']>>) => {
       state.data.styling = { ...state.data.styling, ...action.payload };
     },
 
-    // ── Persistence ───────────────────────────────────────────────────────────
     setLastSaved: (state, action: PayloadAction<string>) => {
       state.lastSaved = action.payload;
     },
     loadResumeData: (state, action: PayloadAction<ResumeData>) => {
       const loaded = action.payload;
       state.data = {
-        personalInfo: { ...initialResumeData.personalInfo, ...loaded.personalInfo },
+        personalInfo: { ...blankResumeData.personalInfo, ...loaded.personalInfo },
         sections: {
           education: loaded.sections?.education || [],
           experience: loaded.sections?.experience || [],
@@ -407,16 +253,15 @@ const resumeSlice = createSlice({
           certifications: loaded.sections?.certifications || [],
           custom: loaded.sections?.custom || [],
         },
-        sectionOrder: loaded.sectionOrder || initialResumeData.sectionOrder,
+        sectionOrder: loaded.sectionOrder || blankResumeData.sectionOrder,
         styling: {
-          ...initialResumeData.styling,
+          ...blankResumeData.styling,
           ...loaded.styling,
-          colors: { ...initialResumeData.styling.colors, ...loaded.styling?.colors },
+          colors: { ...blankResumeData.styling.colors, ...loaded.styling?.colors },
         },
       };
     },
 
-    // ── JD Matching ───────────────────────────────────────────────────────────
     setJobDescription: (state, action: PayloadAction<string>) => {
       state.jobDescription = action.payload;
     },
@@ -424,7 +269,6 @@ const resumeSlice = createSlice({
       state.jdMatchResult = action.payload;
     },
     insertMissingKeyword: (state, action: PayloadAction<string>) => {
-      // Add missing keyword to the first skill entry or create a new one
       const kw = action.payload;
       if (state.data.sections.skills.length > 0) {
         const last = state.data.sections.skills[state.data.sections.skills.length - 1];
@@ -435,7 +279,6 @@ const resumeSlice = createSlice({
       }
     },
 
-    // ── Settings ─────────────────────────────────────────────────────────────
     updateSettings: (state, action: PayloadAction<Partial<AppSettings>>) => {
       state.settings = { ...state.settings, ...action.payload };
     },
