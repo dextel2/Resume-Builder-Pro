@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
-  FileText, Download, Save, Clock, Moon, Sun, Layers, Settings,
-  ChevronDown, FileCode, AlignLeft, Sparkles
+  FileText, Download, Save, Clock, Moon, Sun, Layers,
+  ChevronDown, FileCode, AlignLeft, Sparkles, History
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../hooks';
 import { toggleDarkMode, setLastSaved, setShowTemplateGallery, setShowCoverLetterBuilder } from '../../store/resumeSlice';
@@ -12,9 +12,10 @@ import html2canvas from 'html2canvas';
 
 interface HeaderProps {
   onOpenResumeManager: () => void;
+  onOpenVersions: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
+const Header: React.FC<HeaderProps> = ({ onOpenResumeManager, onOpenVersions }) => {
   const dispatch = useAppDispatch();
   const lastSaved = useAppSelector(state => state.resume.lastSaved);
   const darkMode = useAppSelector(state => state.resume.settings.darkMode);
@@ -98,7 +99,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
   return (
     <header className={`border-b px-4 py-3 flex-shrink-0 z-20 ${base}`}>
       <div className="flex items-center justify-between">
-        {/* Brand */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="bg-indigo-600 p-1.5 rounded-lg">
@@ -110,7 +110,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
             </div>
           </div>
 
-          {/* Nav pills */}
           <div className="hidden md:flex items-center gap-1 ml-4">
             <button
               onClick={onOpenResumeManager}
@@ -118,6 +117,13 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
             >
               <Layers className="h-3.5 w-3.5" />
               My Resumes
+            </button>
+            <button
+              onClick={onOpenVersions}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${btnBase}`}
+            >
+              <History className="h-3.5 w-3.5" />
+              Versions
             </button>
             <button
               onClick={() => dispatch(setShowTemplateGallery(true))}
@@ -136,15 +142,12 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
           </div>
         </div>
 
-        {/* Right controls */}
         <div className="flex items-center gap-2">
-          {/* Last saved */}
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400">
             <Clock className="h-3.5 w-3.5" />
             <span>{formatLastSaved(lastSaved)}</span>
           </div>
 
-          {/* Dark mode */}
           <button
             onClick={() => dispatch(toggleDarkMode())}
             className={`p-2 rounded-lg transition-colors ${btnBase}`}
@@ -153,7 +156,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          {/* Manual save */}
           <button
             onClick={handleManualSave}
             disabled={isSaving}
@@ -163,7 +165,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
             {isSaving ? 'Saving...' : 'Save'}
           </button>
 
-          {/* Export dropdown */}
           <div className="relative">
             <button
               onClick={() => setExportOpen(o => !o)}
