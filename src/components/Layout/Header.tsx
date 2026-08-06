@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
-  FileText, Download, Save, Clock, Moon, Sun, Layers, Settings,
+  FileText, Download, Save, Clock, Moon, Sun, Layers,
   ChevronDown, FileCode, AlignLeft, Sparkles
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../hooks';
 import { toggleDarkMode, setLastSaved, setShowTemplateGallery, setShowCoverLetterBuilder } from '../../store/resumeSlice';
 import { saveResume, loadResume } from '../../db/resumeDB';
 import { exportDOCX, exportTXT } from '../../utils/exportUtils';
+import { validateResumeForExport, formatValidationMessage } from '../../utils/validationUtils';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -30,6 +31,25 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  /** Returns false if export should abort. */
+  const ensureExportAllowed = (): boolean => {
+    const issues = validateResumeForExport(resumeData);
+    const errors = issues.filter(i => i.level === 'error');
+    const warns = issues.filter(i => i.level === 'warn');
+
+    if (errors.length) {
+      alert(formatValidationMessage(issues));
+      return false;
+    }
+    if (warns.length) {
+      const ok = window.confirm(
+        formatValidationMessage(issues) + '\n\nExport anyway?'
+      );
+      return ok;
+    }
+    return true;
+  };
+
   const handleManualSave = async () => {
     setIsSaving(true);
     try {
@@ -50,8 +70,9 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
   };
 
   const handleExportPDF = async () => {
-    setIsExporting(true);
     setExportOpen(false);
+    if (!ensureExportAllowed()) return;
+    setIsExporting(true);
     try {
       const element = document.getElementById('resume-preview');
       if (!element) return;
@@ -79,6 +100,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
 
   const handleExportDOCX = async () => {
     setExportOpen(false);
+    if (!ensureExportAllowed()) return;
     setIsExporting(true);
     try {
       await exportDOCX(resumeData);
@@ -89,6 +111,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
 
   const handleExportTXT = () => {
     setExportOpen(false);
+    if (!ensureExportAllowed()) return;
     exportTXT(resumeData);
   };
 
@@ -98,7 +121,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
   return (
     <header className={`border-b px-4 py-3 flex-shrink-0 z-20 ${base}`}>
       <div className="flex items-center justify-between">
-        {/* Brand */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="bg-indigo-600 p-1.5 rounded-lg">
@@ -110,7 +132,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
             </div>
           </div>
 
-          {/* Nav pills */}
           <div className="hidden md:flex items-center gap-1 ml-4">
             <button
               onClick={onOpenResumeManager}
@@ -136,15 +157,12 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
           </div>
         </div>
 
-        {/* Right controls */}
         <div className="flex items-center gap-2">
-          {/* Last saved */}
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400">
             <Clock className="h-3.5 w-3.5" />
             <span>{formatLastSaved(lastSaved)}</span>
           </div>
 
-          {/* Dark mode */}
           <button
             onClick={() => dispatch(toggleDarkMode())}
             className={`p-2 rounded-lg transition-colors ${btnBase}`}
@@ -153,7 +171,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          {/* Manual save */}
           <button
             onClick={handleManualSave}
             disabled={isSaving}
@@ -163,7 +180,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
             {isSaving ? 'Saving...' : 'Save'}
           </button>
 
-          {/* Export dropdown */}
           <div className="relative">
             <button
               onClick={() => setExportOpen(o => !o)}
