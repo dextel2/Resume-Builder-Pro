@@ -73,6 +73,11 @@ export async function loadCoverLettersByResume(resumeId: string): Promise<CoverL
   return database.getAllFromIndex('coverLetters', 'resumeId', resumeId);
 }
 
+export async function listAllCoverLetters(): Promise<CoverLetter[]> {
+  const database = await getDB();
+  return database.getAll('coverLetters');
+}
+
 export async function deleteCoverLetter(id: string): Promise<void> {
   const database = await getDB();
   await database.delete('coverLetters', id);
