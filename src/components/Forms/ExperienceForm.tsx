@@ -4,6 +4,7 @@ import { useAppSelector, useAppDispatch } from '../../hooks';
 import { addExperience, updateExperience, removeExperience } from '../../store/resumeSlice';
 import { ExperienceEntry } from '../../types/resume';
 import { rewriteBulletWithAI } from '../../utils/atsUtils';
+import { humanizeAIError } from '../../utils/aiErrors';
 
 const ExperienceForm: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -12,6 +13,7 @@ const ExperienceForm: React.FC = () => {
   const darkMode = useAppSelector(state => state.resume.settings.darkMode);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [rewriting, setRewriting] = useState<Record<string, boolean>>({});
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
 
   const update = (id: string, data: Partial<ExperienceEntry>) => dispatch(updateExperience({ id, data }));
 
@@ -41,11 +43,33 @@ const ExperienceForm: React.FC = () => {
     if (!bullet.trim()) return;
     const key = `${expId}-${idx}`;
     setRewriting(p => ({ ...p, [key]: true }));
+    setAiNotice(null);
     try {
-      const rewritten = await rewriteBulletWithAI(bullet, { position: exp.position, company: exp.company }, aiSettings);
+      const rewritten = await rewriteBulletWithAI(
+        bullet,
+        { position: exp.position, company: exp.company },
+        aiSettings
+      );
       const achievements = [...exp.achievements];
       achievements[idx] = rewritten;
       update(expId, { achievements });
+      if (aiSettings.provider !== 'none' && aiSettings.apiKey) {
+        // soft note when provider is on (rule-based may still have been used on failure inside helper)
+      }
+    } catch (err) {
+      setAiNotice(humanizeAIError(err) + ' Using rule-based rewrite when possible.');
+      try {
+        const rewritten = await rewriteBulletWithAI(
+          bullet,
+          { position: exp.position, company: exp.company },
+          { provider: 'none', apiKey: '' }
+        );
+        const achievements = [...exp.achievements];
+        achievements[idx] = rewritten;
+        update(expId, { achievements });
+      } catch {
+        /* ignore */
+      }
     } finally {
       setRewriting(p => ({ ...p, [key]: false }));
     }
@@ -66,6 +90,12 @@ const ExperienceForm: React.FC = () => {
         </button>
       </div>
 
+      {aiNotice && (
+        <div className={`text-xs rounded-lg px-3 py-2 ${darkMode ? 'bg-amber-900/40 text-amber-200' : 'bg-amber-50 text-amber-900'}`}>
+          {aiNotice}
+        </div>
+      )}
+
       {experiences.length === 0 && (
         <div className={`text-center py-8 rounded-xl border-2 border-dashed ${darkMode ? 'border-gray-700 text-gray-500' : 'border-gray-200 text-gray-400'}`}>
           <p className="text-sm">No experience entries yet.</p>
@@ -75,7 +105,6 @@ const ExperienceForm: React.FC = () => {
 
       {experiences.map((exp, expIdx) => (
         <div key={exp.id} className={cardCls}>
-          {/* Header */}
           <div className="flex items-start justify-between gap-2">
             <button onClick={() => toggleCollapse(exp.id)} className="flex-1 text-left">
               <div className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
