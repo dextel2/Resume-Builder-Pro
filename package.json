@@ -3,7 +3,16 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Free, local-first ATS-friendly resume builder",
+  "description": "Free, local-first, ATS-optimized resume builder with multi-resume support, templates, JD matching, and optional AI",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dunexter/Resume-Builder-Pro.git"
+  },
+  "homepage": "https://github.com/Dunexter/Resume-Builder-Pro",
+  "bugs": {
+    "url": "https://github.com/Dunexter/Resume-Builder-Pro/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
