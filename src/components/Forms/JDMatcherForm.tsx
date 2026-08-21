@@ -1,148 +1,139 @@
-import React, { useState } from 'react';
-import { FileSearch, CheckCircle, XCircle, Plus, RefreshCw } from 'lucide-react';
+import React from 'react';
+import { Target, Plus, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../hooks';
 import { setJobDescription, setJDMatchResult, insertMissingKeyword } from '../../store/resumeSlice';
-import { matchJobDescription } from '../../utils/atsUtils';
+import { matchJobDescriptionWithSynonyms } from '../../utils/jdMatch';
 
 const JDMatcherForm: React.FC = () => {
   const dispatch = useAppDispatch();
-  const resumeData = useAppSelector(state => state.resume.data);
   const jobDescription = useAppSelector(state => state.resume.jobDescription);
-  const matchResult = useAppSelector(state => state.resume.jdMatchResult);
+  const jdMatchResult = useAppSelector(state => state.resume.jdMatchResult);
+  const resumeData = useAppSelector(state => state.resume.data);
   const darkMode = useAppSelector(state => state.resume.settings.darkMode);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleAnalyze = async () => {
-    if (!jobDescription.trim()) return;
-    setIsAnalyzing(true);
-    await new Promise(r => setTimeout(r, 300)); // small UX delay
-    const result = matchJobDescription(resumeData, jobDescription);
+  const runMatch = () => {
+    const result = matchJobDescriptionWithSynonyms(resumeData, jobDescription);
     dispatch(setJDMatchResult(result));
-    setIsAnalyzing(false);
   };
 
-  const handleInsertKeyword = (kw: string) => {
+  const addKeyword = (kw: string) => {
     dispatch(insertMissingKeyword(kw));
-    // Re-analyze after insertion
-    const result = matchJobDescription(
-      { ...resumeData, sections: { ...resumeData.sections, skills: resumeData.sections.skills } },
-      jobDescription
-    );
-    dispatch(setJDMatchResult(result));
+    // Re-run match after a tick so store updates
+    setTimeout(() => {
+      const result = matchJobDescriptionWithSynonyms(
+        // use latest from window not available — re-match from current + kw heuristically
+        {
+          ...resumeData,
+          sections: {
+            ...resumeData.sections,
+            skills: resumeData.sections.skills.length
+              ? resumeData.sections.skills.map((s, i, arr) =>
+                  i === arr.length - 1
+                    ? { ...s, skills: s.skills ? `${s.skills}, ${kw}` : kw }
+                    : s
+                )
+              : [{ id: 'tmp', category: 'Additional Skills', skills: kw }],
+          },
+        },
+        jobDescription
+      );
+      dispatch(setJDMatchResult(result));
+    }, 0);
   };
 
-  const scoreColor = (s: number) => s >= 70 ? 'text-green-600' : s >= 50 ? 'text-yellow-600' : 'text-red-600';
-  const scoreBg = (s: number) => s >= 70 ? 'bg-green-100 border-green-200' : s >= 50 ? 'bg-yellow-100 border-yellow-200' : 'bg-red-100 border-red-200';
+  const scoreColor =
+    !jdMatchResult
+      ? ''
+      : jdMatchResult.score >= 70
+        ? 'text-green-500'
+        : jdMatchResult.score >= 40
+          ? 'text-amber-500'
+          : 'text-red-500';
 
-  const dm = darkMode;
-  const cardCls = `rounded-xl border p-4 ${dm ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`;
+  const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none ${
+    darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900'
+  }`;
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className={`text-lg font-bold ${dm ? 'text-white' : 'text-gray-900'}`}>Job Description Matcher</h2>
-        <p className={`text-sm mt-1 ${dm ? 'text-gray-400' : 'text-gray-500'}`}>
-          Paste a job posting to see your keyword match score and which skills to add — the feature competitors charge $30+/month for.
-        </p>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Target className="h-5 w-5 text-indigo-500" />
+        <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Job Description Match</h2>
       </div>
+      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        Paste a JD to score keyword overlap (with skill synonyms, e.g. k8s ↔ kubernetes).
+      </p>
 
-      <div className={`p-3 rounded-xl border-l-4 border-indigo-500 ${dm ? 'bg-indigo-900/20' : 'bg-indigo-50'}`}>
-        <p className={`text-xs font-semibold ${dm ? 'text-indigo-300' : 'text-indigo-700'}`}>
-          100% Free · No Sign-up · Runs locally in your browser
-        </p>
-      </div>
+      <textarea
+        className={inputCls}
+        rows={8}
+        value={jobDescription}
+        onChange={e => dispatch(setJobDescription(e.target.value))}
+        placeholder="Paste the full job description here…"
+      />
 
-      {/* JD Input */}
-      <div className={cardCls}>
-        <label className={`block text-sm font-semibold mb-2 ${dm ? 'text-gray-200' : 'text-gray-800'}`}>
-          Paste Job Description
-        </label>
-        <textarea
-          className={`w-full px-3 py-2.5 rounded-lg border text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none transition-colors ${dm ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`}
-          rows={8}
-          value={jobDescription}
-          onChange={e => dispatch(setJobDescription(e.target.value))}
-          placeholder="Paste the full job description here. The more text you include, the more accurate the keyword matching will be..."
-        />
-        <div className="flex items-center justify-between mt-3">
-          <span className={`text-xs ${dm ? 'text-gray-500' : 'text-gray-400'}`}>{jobDescription.length} characters</span>
-          <button
-            onClick={handleAnalyze}
-            disabled={!jobDescription.trim() || isAnalyzing}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
-            {isAnalyzing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <FileSearch className="h-4 w-4" />}
-            {isAnalyzing ? 'Analyzing...' : 'Analyze Match'}
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={runMatch}
+        disabled={!jobDescription.trim()}
+        className="w-full py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors"
+      >
+        Analyze match
+      </button>
 
-      {/* Results */}
-      {matchResult && (
-        <>
-          {/* Score banner */}
-          <div className={`${cardCls} ${scoreBg(matchResult.score)} text-center py-5`}>
-            <div className={`text-5xl font-black mb-1 ${scoreColor(matchResult.score)}`}>{matchResult.score}%</div>
-            <div className={`text-sm font-semibold ${scoreColor(matchResult.score)}`}>
-              {matchResult.score >= 70 ? 'Great match! Your resume is well-aligned.' :
-               matchResult.score >= 50 ? 'Decent match — add more missing keywords.' :
-               'Low match — tailor your resume more to this job.'}
-            </div>
-            <div className="flex justify-center gap-6 mt-3 text-xs font-medium">
-              <span className="text-green-600">✓ {matchResult.matchedKeywords.length} matched</span>
-              <span className="text-red-500">✗ {matchResult.missingKeywords.length} missing</span>
-            </div>
+      {jdMatchResult && (
+        <div className={`rounded-xl border p-4 space-y-3 ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex items-center justify-between">
+            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Match score</span>
+            <span className={`text-2xl font-bold ${scoreColor}`}>{jdMatchResult.score}%</span>
           </div>
 
-          {/* Missing keywords — one-click add */}
-          {matchResult.missingKeywords.length > 0 && (
-            <div className={cardCls}>
-              <h3 className={`text-sm font-bold mb-3 ${dm ? 'text-gray-200' : 'text-gray-800'}`}>
-                Missing Keywords — Click to Add to Skills
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {matchResult.missingKeywords.map(kw => (
-                  <button
-                    key={kw}
-                    onClick={() => handleInsertKeyword(kw)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all hover:scale-105 ${dm ? 'bg-red-900/20 border-red-700 text-red-300 hover:bg-red-800/30' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'}`}
-                  >
-                    <Plus className="h-3 w-3" />
-                    {kw}
-                  </button>
-                ))}
-              </div>
+          {jdMatchResult.suggestions.map((s, i) => (
+            <div key={i} className={`flex gap-2 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 text-amber-500" />
+              <span>{s}</span>
             </div>
-          )}
+          ))}
 
-          {/* Matched keywords */}
-          {matchResult.matchedKeywords.length > 0 && (
-            <div className={cardCls}>
-              <h3 className={`text-sm font-bold mb-3 ${dm ? 'text-gray-200' : 'text-gray-800'}`}>
-                Matched Keywords ({matchResult.matchedKeywords.length})
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {matchResult.matchedKeywords.map(kw => (
-                  <span key={kw} className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${dm ? 'bg-green-900/20 text-green-300' : 'bg-green-50 text-green-700'}`}>
-                    <CheckCircle className="h-3 w-3" />{kw}
+          {jdMatchResult.matchedKeywords.length > 0 && (
+            <div>
+              <div className={`text-xs font-semibold mb-1.5 flex items-center gap-1 ${darkMode ? 'text-green-400' : 'text-green-700'}`}>
+                <CheckCircle className="h-3.5 w-3.5" /> Matched ({jdMatchResult.matchedKeywords.length})
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {jdMatchResult.matchedKeywords.map(kw => (
+                  <span key={kw} className={`text-[10px] px-1.5 py-0.5 rounded ${darkMode ? 'bg-green-900/40 text-green-300' : 'bg-green-100 text-green-800'}`}>
+                    {kw}
                   </span>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Suggestions */}
-          {matchResult.suggestions.length > 0 && (
-            <div className={`${cardCls} space-y-2`}>
-              <h3 className={`text-sm font-bold ${dm ? 'text-gray-200' : 'text-gray-800'}`}>Recommendations</h3>
-              {matchResult.suggestions.map((s, i) => (
-                <div key={i} className={`text-xs p-2.5 rounded-lg ${dm ? 'bg-indigo-900/30 text-indigo-300' : 'bg-indigo-50 text-indigo-700'}`}>
-                  💡 {s}
-                </div>
-              ))}
+          {jdMatchResult.missingKeywords.length > 0 && (
+            <div>
+              <div className={`text-xs font-semibold mb-1.5 flex items-center gap-1 ${darkMode ? 'text-red-400' : 'text-red-700'}`}>
+                <XCircle className="h-3.5 w-3.5" /> Missing — click to add to Skills
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {jdMatchResult.missingKeywords.map(kw => (
+                  <button
+                    key={kw}
+                    type="button"
+                    onClick={() => addKeyword(kw)}
+                    className={`text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5 transition-colors ${
+                      darkMode
+                        ? 'bg-red-900/40 text-red-300 hover:bg-red-900/70'
+                        : 'bg-red-100 text-red-800 hover:bg-red-200'
+                    }`}
+                  >
+                    <Plus className="h-2.5 w-2.5" /> {kw}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

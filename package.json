@@ -1,13 +1,25 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "resume-builder-pro",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
+  "description": "Free, local-first, ATS-optimized resume builder with multi-resume support, templates, JD matching, and optional AI",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dunexter/Resume-Builder-Pro.git"
+  },
+  "homepage": "https://github.com/Dunexter/Resume-Builder-Pro",
+  "bugs": {
+    "url": "https://github.com/Dunexter/Resume-Builder-Pro/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
@@ -36,10 +48,12 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
+    "jsdom": "^25.0.1",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
-    "vite": "^5.4.2"
+    "vite": "^5.4.2",
+    "vitest": "^2.1.8"
   }
 }
