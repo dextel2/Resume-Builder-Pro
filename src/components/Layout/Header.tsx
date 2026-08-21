@@ -7,6 +7,9 @@ import { useAppSelector, useAppDispatch } from '../../hooks';
 import { toggleDarkMode, setLastSaved, setShowTemplateGallery, setShowCoverLetterBuilder } from '../../store/resumeSlice';
 import { saveResume, loadResume } from '../../db/resumeDB';
 import { exportDOCX, exportTXT } from '../../utils/exportUtils';
+import { validateResumeForExport, formatValidationMessage } from '../../utils/validationUtils';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { exportVisualPDF, exportAtsPDF } from '../../utils/pdfExport';
 
 interface HeaderProps {
@@ -29,6 +32,25 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  /** Returns false if export should abort. */
+  const ensureExportAllowed = (): boolean => {
+    const issues = validateResumeForExport(resumeData);
+    const errors = issues.filter(i => i.level === 'error');
+    const warns = issues.filter(i => i.level === 'warn');
+
+    if (errors.length) {
+      alert(formatValidationMessage(issues));
+      return false;
+    }
+    if (warns.length) {
+      const ok = window.confirm(
+        formatValidationMessage(issues) + '\n\nExport anyway?'
+      );
+      return ok;
+    }
+    return true;
+  };
+
   const handleManualSave = async () => {
     setIsSaving(true);
     try {
@@ -48,9 +70,12 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
     }
   };
 
+  const handleExportPDF = async () => {
   const handleExportVisualPDF = async () => {
     setIsExporting(true);
     setExportOpen(false);
+    if (!ensureExportAllowed()) return;
+    setIsExporting(true);
     try {
       await exportVisualPDF(resumeData);
     } catch (err) {
@@ -76,6 +101,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
 
   const handleExportDOCX = async () => {
     setExportOpen(false);
+    if (!ensureExportAllowed()) return;
     setIsExporting(true);
     try {
       await exportDOCX(resumeData);
@@ -86,6 +112,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
 
   const handleExportTXT = () => {
     setExportOpen(false);
+    if (!ensureExportAllowed()) return;
     exportTXT(resumeData);
   };
 
