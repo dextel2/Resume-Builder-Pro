@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import {
   FileText, Download, Save, Clock, Moon, Sun, Layers,
-  ChevronDown, FileCode, AlignLeft, Sparkles
+  ChevronDown, FileCode, AlignLeft, Sparkles, History
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../hooks';
 import { toggleDarkMode, setLastSaved, setShowTemplateGallery, setShowCoverLetterBuilder } from '../../store/resumeSlice';
 import { saveResume, loadResume } from '../../db/resumeDB';
 import { exportDOCX, exportTXT } from '../../utils/exportUtils';
 import { validateResumeForExport, formatValidationMessage } from '../../utils/validationUtils';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { exportVisualPDF, exportAtsPDF } from '../../utils/pdfExport';
 
 interface HeaderProps {
@@ -71,7 +69,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager, onOpenVersions }) 
     }
   };
 
-  const handleExportPDF = async () => {
   const handleExportVisualPDF = async () => {
     setIsExporting(true);
     setExportOpen(false);
