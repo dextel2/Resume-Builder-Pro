@@ -14,9 +14,10 @@ import { exportVisualPDF, exportAtsPDF } from '../../utils/pdfExport';
 
 interface HeaderProps {
   onOpenResumeManager: () => void;
+  onOpenVersions: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
+const Header: React.FC<HeaderProps> = ({ onOpenResumeManager, onOpenVersions }) => {
   const dispatch = useAppDispatch();
   const lastSaved = useAppSelector(state => state.resume.lastSaved);
   const darkMode = useAppSelector(state => state.resume.settings.darkMode);
@@ -141,6 +142,13 @@ const Header: React.FC<HeaderProps> = ({ onOpenResumeManager }) => {
             >
               <Layers className="h-3.5 w-3.5" />
               My Resumes
+            </button>
+            <button
+              onClick={onOpenVersions}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${btnBase}`}
+            >
+              <History className="h-3.5 w-3.5" />
+              Versions
             </button>
             <button
               onClick={() => dispatch(setShowTemplateGallery(true))}

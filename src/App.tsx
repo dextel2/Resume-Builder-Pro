@@ -101,7 +101,10 @@ const AppContent: React.FC = () => {
 
   return (
     <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-200 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <Header onOpenResumeManager={() => setShowResumeManager(true)} />
+      <Header
+        onOpenResumeManager={() => setShowResumeManager(true)}
+        onOpenVersions={() => setShowVersions(true)}
+      />
 
       <div className="flex-1 flex overflow-hidden min-h-0">
         <Sidebar />
